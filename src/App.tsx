@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { createFalClient } from '@fal-ai/client';
 
 // Tworzymy klienta, który wie, że ma używać naszego oficjalnego pośrednika
