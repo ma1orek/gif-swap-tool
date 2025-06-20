@@ -1,12 +1,10 @@
-import { fal, config as configure } from '@fal-ai/client';
+import { fal } from '@fal-ai/client';
 import { type NextApiRequest, type NextApiResponse } from 'next';
 import formidable from 'formidable';
 import fs from 'fs';
 
-// Ustawiamy klucz API ze zmiennych środowiskowych serwera
-configure({
-    credentials: process.env.FAL_KEY,
-});
+// UWAGA: Nowa dokumentacja nie pokazuje globalnego fal.config() dla klienta
+// Klucz jest pobierany automatycznie ze zmiennej środowiskowej process.env.FAL_KEY
 
 export const config = {
     api: {
@@ -34,20 +32,20 @@ export default async function handler(
             return res.status(400).json({ error: 'Brak plików' });
         }
         
-        // Biblioteka @fal-ai/client sama potrafi obsłużyć pliki (auto-upload)
-        // Przekazujemy jej odczytane pliki jako Buffer
+        // Odczytujemy pliki do bufora
         const gifFileBuffer = fs.readFileSync(gifFile.filepath);
         const faceImageBuffer = fs.readFileSync(faceImageFile.filepath);
         
-        // Wywołanie modelu easel-gifswap
+        // Wywołanie modelu easel-ai/easel-gifswap z auto-upload
+        // Przekazujemy bufory plików bezpośrednio w `input`
         const result: any = await fal.subscribe('easel-ai/easel-gifswap', {
             input: {
-                face_image_url: faceImageBuffer,
-                gif_image_url: gifFileBuffer,
+                face_image: faceImageBuffer,
+                gif_image: gifFileBuffer,
             },
         });
 
-        // Wg dokumentacji, wynik jest w polu "image", nie "gif"
+        // Wg dokumentacji, wynik jest w polu "image"
         res.status(200).json({ gif_url: result.image.url });
 
     } catch (error: any) {

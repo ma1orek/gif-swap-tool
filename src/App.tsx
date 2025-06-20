@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 
 export default function GifSwapTool() {
     const [gifFile, setGifFile] = useState<File | null>(null);
@@ -22,7 +22,7 @@ export default function GifSwapTool() {
             formData.append('gif_file', gifFile);
             formData.append('face_image_file', faceImageFile);
 
-            // Wysyłamy pliki do naszego własnego pośrednika /api/swap
+            // Wysyłamy pliki do naszego pośrednika /api/swap
             const response = await fetch('/api/swap', {
                 method: 'POST',
                 body: formData,
