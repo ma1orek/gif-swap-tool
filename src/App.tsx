@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 
 export default function GifSwapTool() {
     const [gifFile, setGifFile] = useState<File | null>(null);
