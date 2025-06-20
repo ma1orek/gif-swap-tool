@@ -22,7 +22,6 @@ export default function GifSwapTool() {
             formData.append('gif_file', gifFile);
             formData.append('face_image_file', faceImageFile);
 
-            // Wysyłamy pliki do naszego pośrednika /api/swap
             const response = await fetch('/api/swap', {
                 method: 'POST',
                 body: formData,
@@ -46,7 +45,7 @@ export default function GifSwapTool() {
 
     return (
         <div style={{ fontFamily: 'sans-serif', maxWidth: '500px', margin: 'auto', padding: '20px', border: '1px solid #ccc', borderRadius: '10px' }}>
-            <h1>Podmiana Twarzy w GIF-ie</h1>
+            <h1>Podmiana Twarzy w GIF-ie (Wersja Finalna)</h1>
             <p>Wgraj plik GIF i zdjęcie z twarzą do podmiany.</p>
             
             <div style={{ marginBottom: '1rem' }}>

@@ -3,8 +3,8 @@ import { type NextApiRequest, type NextApiResponse } from 'next';
 import formidable from 'formidable';
 import fs from 'fs';
 
-// UWAGA: Nowa dokumentacja nie pokazuje globalnego fal.config() dla klienta
-// Klucz jest pobierany automatycznie ze zmiennej środowiskowej process.env.FAL_KEY
+// Klucz API jest pobierany automatycznie ze zmiennej środowiskowej process.env.FAL_KEY
+// przez bibliotekę @fal-ai/client
 
 export const config = {
     api: {
@@ -32,7 +32,6 @@ export default async function handler(
             return res.status(400).json({ error: 'Brak plików' });
         }
         
-        // Odczytujemy pliki do bufora
         const gifFileBuffer = fs.readFileSync(gifFile.filepath);
         const faceImageBuffer = fs.readFileSync(faceImageFile.filepath);
         
@@ -45,7 +44,7 @@ export default async function handler(
             },
         });
 
-        // Wg dokumentacji, wynik jest w polu "image"
+        // Wg dokumentacji, wynik jest w polu "image", nie "gif"
         res.status(200).json({ gif_url: result.image.url });
 
     } catch (error: any) {
