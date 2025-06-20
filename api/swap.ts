@@ -44,7 +44,6 @@ async function pollForResult(requestId: string): Promise<any> {
         const result = await response.json();
         
         if (result.status === 'COMPLETED') {
-            // Po statusie COMPLETED, pełny wynik jest w tym samym obiekcie pod kluczem 'result'
             return result.result;
         } 
         if (result.status === 'FAILED' || result.status === 'ERROR') {
