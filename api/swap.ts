@@ -1,15 +1,13 @@
-// Ten kod będzie działał na serwerze, a nie w przeglądarce
-import * as fal from '@fal-ai/serverless-client';
+import { fal, config as configure } from '@fal-ai/client';
 import { type NextApiRequest, type NextApiResponse } from 'next';
 import formidable from 'formidable';
 import fs from 'fs';
 
 // Ustawiamy klucz API ze zmiennych środowiskowych serwera
-fal.config({
+configure({
     credentials: process.env.FAL_KEY,
 });
 
-// Musimy wyłączyć domyślne parsowanie body przez Next.js, bo oczekujemy plików
 export const config = {
     api: {
         bodyParser: false,
@@ -26,9 +24,7 @@ export default async function handler(
     }
 
     try {
-        // Parsowanie plików z requestu za pomocą formidable
         const form = formidable({});
-        // POPRAWKA: Ignorujemy nieużywaną zmienną 'fields'
         const [, files] = await form.parse(req);
         
         const gifFile = files.gif_file?.[0];
@@ -38,21 +34,21 @@ export default async function handler(
             return res.status(400).json({ error: 'Brak plików' });
         }
         
-        // Krok 1: Wgranie plików na serwer Fal.ai (teraz z serwera, nie z przeglądarki)
-        // POPRAWKA: Konwertujemy odczytany plik (Buffer) na Blob, którego oczekuje funkcja
-        const gifUrl = await fal.storage.upload(new Blob([fs.readFileSync(gifFile.filepath)]));
-        const faceUrl = await fal.storage.upload(new Blob([fs.readFileSync(faceImageFile.filepath)]));
-
-        // Krok 2: Wywołanie modelu easel-gifswap
-        const result: { gif: { url: string } } = await fal.subscribe('easel-ai/easel-gifswap', {
+        // Biblioteka @fal-ai/client sama potrafi obsłużyć pliki (auto-upload)
+        // Przekazujemy jej odczytane pliki jako Buffer
+        const gifFileBuffer = fs.readFileSync(gifFile.filepath);
+        const faceImageBuffer = fs.readFileSync(faceImageFile.filepath);
+        
+        // Wywołanie modelu easel-gifswap
+        const result: any = await fal.subscribe('easel-ai/easel-gifswap', {
             input: {
-                face_image_url: faceUrl,
-                gif_image_url: gifUrl,
+                face_image_url: faceImageBuffer,
+                gif_image_url: gifFileBuffer,
             },
         });
 
-        // Krok 3: Odesłanie wyniku do przeglądarki
-        res.status(200).json({ gif_url: result.gif.url });
+        // Wg dokumentacji, wynik jest w polu "image", nie "gif"
+        res.status(200).json({ gif_url: result.image.url });
 
     } catch (error: any) {
         console.error(error);
