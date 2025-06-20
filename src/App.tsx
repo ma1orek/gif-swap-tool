@@ -1,12 +1,12 @@
 // src/App.tsx
-import { useState } from "react";
+import React, { useState } from "react";
 import fal from "./falClient";
 
-function App() {
-  const [gifFile, setGifFile] = useState<File|null>(null);
-  const [faceFile, setFaceFile] = useState<File|null>(null);
-  const [error, setError] = useState<string|null>(null);
-  const [resultUrl, setResultUrl] = useState<string|null>(null);
+export default function App() {
+  const [gifFile, setGifFile] = useState<File | null>(null);
+  const [faceFile, setFaceFile] = useState<File | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [resultUrl, setResultUrl] = useState<string | null>(null);
 
   const handleSubmit = async () => {
     if (!gifFile || !faceFile) {
@@ -17,13 +17,12 @@ function App() {
     setResultUrl(null);
 
     try {
-      // fal.subscribe automatycznie wrzuci pliki i czeka na wynik
       const { data } = await fal.subscribe("easel-ai/easel-gifswap", {
         input: {
           gif_image: gifFile,
-          face_image: faceFile,
+          face_image: faceFile
         },
-        logs: true,
+        logs: true
       });
       setResultUrl(data.image.url);
     } catch (e: any) {
@@ -35,11 +34,20 @@ function App() {
   return (
     <div style={{ padding: 20, maxWidth: 400 }}>
       <h1>Podmień Twarz w GIF-ie</h1>
-      <label>1. Plik GIF</label><br/>
-      <input type="file" accept=".gif" onChange={e => setGifFile(e.target.files?.[0]||null)} /><br/><br/>
 
-      <label>2. Zdjęcie z twarzą</label><br/>
-      <input type="file" accept="image/*" onChange={e => setFaceFile(e.target.files?.[0]||null)} /><br/><br/>
+      <label>1. Plik GIF</label><br />
+      <input
+        type="file"
+        accept=".gif"
+        onChange={(e) => setGifFile(e.target.files?.[0] || null)}
+      /><br /><br />
+
+      <label>2. Zdjęcie z twarzą</label><br />
+      <input
+        type="file"
+        accept="image/*"
+        onChange={(e) => setFaceFile(e.target.files?.[0] || null)}
+      /><br /><br />
 
       <button onClick={handleSubmit}>Podmień Twarz</button>
 
@@ -54,5 +62,3 @@ function App() {
     </div>
   );
 }
-
-export default App;

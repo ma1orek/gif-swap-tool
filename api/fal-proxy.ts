@@ -13,17 +13,17 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   try {
-    // use the global fetch provided by Node 18+
+    // globalny fetch w Node 18+
     const falRes = await fetch(target, {
       method,
       headers: {
         Authorization: `Key ${process.env.FAL_KEY}`,
-        "Content-Type": "application/json",
+        "Content-Type": "application/json"
       },
-      body: method === "POST" ? JSON.stringify(req.body) : undefined,
+      body: method === "POST" ? JSON.stringify(req.body) : undefined
     });
 
-    // forward response headers (except length/encoding)
+    // forward response headers (bez content-length i content-encoding)
     for (const [key, value] of falRes.headers.entries()) {
       if (key === "content-length" || key === "content-encoding") continue;
       res.setHeader(key, value);
