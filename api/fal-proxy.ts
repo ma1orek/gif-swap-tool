@@ -1,6 +1,5 @@
 // api/fal-proxy.ts
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import fetch from "node-fetch";
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   const method = req.method;
@@ -14,6 +13,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   try {
+    // use the global fetch provided by Node 18+
     const falRes = await fetch(target, {
       method,
       headers: {
@@ -23,16 +23,16 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       body: method === "POST" ? JSON.stringify(req.body) : undefined,
     });
 
-    // forward response headers (oprócz content-length i content-encoding)
-    falRes.headers.forEach((value, key) => {
-      if (key === "content-length" || key === "content-encoding") return;
+    // forward response headers (except length/encoding)
+    for (const [key, value] of falRes.headers.entries()) {
+      if (key === "content-length" || key === "content-encoding") continue;
       res.setHeader(key, value);
-    });
+    }
 
     res.status(falRes.status);
     const data = await falRes.json();
     return res.json(data);
-  } catch (err) {
+  } catch (err: any) {
     console.error("Fal proxy error:", err);
     return res.status(500).json({ error: "Proxy error" });
   }

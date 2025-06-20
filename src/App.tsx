@@ -1,77 +1,58 @@
-import { useState } from 'react';
-import { createFalClient } from '@fal-ai/client';
+// src/App.tsx
+import React, { useState } from "react";
+import fal from "./falClient";
 
-// Tworzymy klienta, który wie, że ma używać naszego oficjalnego pośrednika
-const fal = createFalClient({
-    proxyUrl: '/api/fal/proxy',
-});
+function App() {
+  const [gifFile, setGifFile] = useState<File|null>(null);
+  const [faceFile, setFaceFile] = useState<File|null>(null);
+  const [error, setError] = useState<string|null>(null);
+  const [resultUrl, setResultUrl] = useState<string|null>(null);
 
-export default function GifSwapTool() {
-    const [gifFile, setGifFile] = useState<File | null>(null);
-    const [faceImageFile, setFaceImageFile] = useState<File | null>(null);
-    const [resultImageUrl, setResultImageUrl] = useState<string | null>(null);
-    const [isLoading, setIsLoading] = useState(false);
-    const [error, setError] = useState<string | null>(null);
+  const handleSubmit = async () => {
+    if (!gifFile || !faceFile) {
+      setError("Wybierz oba pliki!");
+      return;
+    }
+    setError(null);
+    setResultUrl(null);
 
-    const handleSwap = async () => {
-        if (!gifFile || !faceImageFile) {
-            setError('Proszę wgrać plik GIF oraz zdjęcie twarzy.');
-            return;
-        }
+    try {
+      // fal.subscribe automatycznie wrzuci pliki i czeka na wynik
+      const { data } = await fal.subscribe("easel-ai/easel-gifswap", {
+        input: {
+          gif_image: gifFile,
+          face_image: faceFile,
+        },
+        logs: true,
+      });
+      setResultUrl(data.image.url);
+    } catch (e: any) {
+      console.error(e);
+      setError(e.message || "Nieznany błąd");
+    }
+  };
 
-        setIsLoading(true);
-        setError(null);
-        setResultImageUrl(null);
+  return (
+    <div style={{ padding: 20, maxWidth: 400 }}>
+      <h1>Podmień Twarz w GIF-ie</h1>
+      <label>1. Plik GIF</label><br/>
+      <input type="file" accept=".gif" onChange={e => setGifFile(e.target.files?.[0]||null)} /><br/><br/>
 
-        try {
-            // Wywołujemy model, którego chciałeś, bezpośrednio z frontendu
-            // Biblioteka sama wyśle pliki przez naszego pośrednika
-            const result: any = await fal.subscribe('easel-ai/easel-gifswap', {
-                input: {
-                    face_image: faceImageFile,
-                    gif_image: gifFile,
-                },
-            });
+      <label>2. Zdjęcie z twarzą</label><br/>
+      <input type="file" accept="image/*" onChange={e => setFaceFile(e.target.files?.[0]||null)} /><br/><br/>
 
-            // Wynik jest w polu "image"
-            setResultImageUrl(result.image.url);
+      <button onClick={handleSubmit}>Podmień Twarz</button>
 
-        } catch (e: any) {
-            setError(e.message || 'Wystąpił nieznany błąd.');
-            console.error(e);
-        } finally {
-            setIsLoading(false);
-        }
-    };
+      {error && <p style={{ color: "red" }}>Błąd: {error}</p>}
 
-    return (
-        <div style={{ fontFamily: 'sans-serif', maxWidth: '500px', margin: 'auto', padding: '20px', border: '1px solid #ccc', borderRadius: '10px' }}>
-            <h1>Podmiana Twarzy w GIF-ie (Wersja Oficjalna)</h1>
-            <p>Wgraj plik GIF i zdjęcie z twarzą do podmiany.</p>
-            
-            <div style={{ marginBottom: '1rem' }}>
-                <label>1. Plik GIF</label><br/>
-                <input type="file" accept="image/gif" onChange={(e) => setGifFile(e.target.files?.[0] || null)} />
-            </div>
-
-            <div style={{ marginBottom: '1rem' }}>
-                <label>2. Zdjęcie z twarzą do podmiany</label><br/>
-                <input type="file" accept="image/*" onChange={(e) => setFaceImageFile(e.target.files?.[0] || null)} />
-            </div>
-
-            <button onClick={handleSwap} disabled={isLoading || !gifFile || !faceImageFile} style={{ padding: '10px 20px', fontSize: '16px' }}>
-                {isLoading ? 'Przetwarzanie...' : 'Podmień Twarz'}
-            </button>
-
-            {error && <p style={{ color: 'red', whiteSpace: 'pre-wrap' }}>Błąd: {error}</p>}
-
-            {resultImageUrl && (
-                <div style={{ marginTop: '20px' }}>
-                    <h2>Wynik:</h2>
-                    <img src={resultImageUrl} alt="Wynik podmiany twarzy" style={{ maxWidth: '100%', borderRadius: '8px' }} />
-                    <p><a href={resultImageUrl} download="result.gif">Pobierz GIF</a></p>
-                </div>
-            )}
+      {resultUrl && (
+        <div>
+          <h2>Wynik:</h2>
+          <img src={resultUrl} alt="wynik" style={{ maxWidth: "100%" }} />
         </div>
-    );
+      )}
+    </div>
+  );
 }
+
+export default App;
