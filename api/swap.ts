@@ -28,7 +28,8 @@ export default async function handler(
     try {
         // Parsowanie plików z requestu za pomocą formidable
         const form = formidable({});
-        const [fields, files] = await form.parse(req);
+        // POPRAWKA: Ignorujemy nieużywaną zmienną 'fields'
+        const [, files] = await form.parse(req);
         
         const gifFile = files.gif_file?.[0];
         const faceImageFile = files.face_image_file?.[0];
@@ -38,8 +39,9 @@ export default async function handler(
         }
         
         // Krok 1: Wgranie plików na serwer Fal.ai (teraz z serwera, nie z przeglądarki)
-        const gifUrl = await fal.storage.upload(fs.readFileSync(gifFile.filepath));
-        const faceUrl = await fal.storage.upload(fs.readFileSync(faceImageFile.filepath));
+        // POPRAWKA: Konwertujemy odczytany plik (Buffer) na Blob, którego oczekuje funkcja
+        const gifUrl = await fal.storage.upload(new Blob([fs.readFileSync(gifFile.filepath)]));
+        const faceUrl = await fal.storage.upload(new Blob([fs.readFileSync(faceImageFile.filepath)]));
 
         // Krok 2: Wywołanie modelu easel-gifswap
         const result: { gif: { url: string } } = await fal.subscribe('easel-ai/easel-gifswap', {
